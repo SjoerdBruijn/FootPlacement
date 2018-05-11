@@ -1,4 +1,4 @@
-function  [Cycle,TimeGain]=NormalizeTimeBase(signal,trigind)
+function  [Cycle,TimeGain]=normalizetimebase(signal,trigind)
 
 % NormalizeTimeBase: calcultes a 0-100% timebase, ensemble-averages cyclic signals
 % [Cycle,TimeGain]=NormalizeTimeBase(signal,trigind)
@@ -19,6 +19,7 @@ function  [Cycle,TimeGain]=NormalizeTimeBase(signal,trigind)
 
 % AUTHOR(S) AND VERSION-HISTORY
 % Ver 1.2 April 2003 (Jaap Harlaar VUmc Amsterdam) adapted from some version
+% new ver, may 2018, SMB
 
 
 if nargin < 2, trigind=[1 length(signal)]; end
@@ -28,47 +29,31 @@ if nargin < 1, return, end
 nansignal(isnan(signal))=0;
 nansignal(~isnan(signal))=1;
 
+N           = length(trigind)-1;
+Cycle       = nan(101,N);
+Cyclenan    = nan(101,N);
+CycleLength = nan;
 
-Cycle=[1:101]'*nan;
-Cyclenan=[1:101]'*nan;
-CycleLength=-101;
-N=length(trigind)-1;
-if N>1,
-    for i=1:N,
-        x=[trigind(i):trigind(i+1)]-trigind(i);
-        CycleLength(i)=length(x);
-        x=x*100/(trigind(i+1)-trigind(i));
-        x=x+1;
-        try
-            Cycle(:,i)=interp1(x',signal(trigind(i):trigind(i+1))',[1:101]','cubic');
-            Cyclenan(:,i)=interp1(x',nansignal(trigind(i):trigind(i+1))',[1:101]','cubic');
-            
-        catch
-            Cyclenan(:,i)=nan;
-            Cycle(:,i)=nan;
-        end
-    end
-    Cyclenan(Cyclenan<1)=nan;
-    Cycle=Cycle.*Cyclenan;
-    
-    tmp=nanmean(Cycle(:,1:N)');
-    Cycle(:,N+1)=tmp';
-    tmp=nanstd(Cycle(:,1:N)');
-    Cycle(:,N+2)=tmp';
-    TimeGain=101/mean(CycleLength);
-elseif N==1,
-    x=[trigind(1):trigind(2)]-trigind(1);
-    CycleLength=length(x);
-    x=x.*100/(trigind(2)-trigind(1))+1;
+
+for i_cycle = 1:N
+    x                       = (trigind(i_cycle):trigind(i_cycle+1))-trigind(i_cycle);
+    CycleLength(i_cycle)    = length(x);
+    x                       = x*100/(trigind(i_cycle+1)-trigind(i_cycle));
+    x                       = x+1;
     try
-        Cycle(:,1)=interp1(x',signal(trigind(1):trigind(2))',[1:101]','cubic');
+        Cycle(:,i_cycle)    = interp1(x',signal(trigind(i_cycle):trigind(i_cycle+1))',(1:101)','pchip');
+        Cyclenan(:,i_cycle) = interp1(x',nansignal(trigind(i_cycle):trigind(i_cycle+1))',(1:101)','pchip');
     catch
-        Cycle(1:101,1)=nan;
+        Cyclenan(:,i_cycle) = nan;
+        Cycle(:,i_cycle)    = nan;
     end
-    TimeGain=101/CycleLength;
+end
+Cyclenan(Cyclenan<1)    = nan;
+Cycle                   = Cycle.*Cyclenan;
+TimeGain                = 101/mean(CycleLength);
+
+if N>1
+    Cycle(:,N+1)    = nanmean(Cycle,2);
+    Cycle(:,N+2)    = nanstd(Cycle,[],2);
 end
 
-
-return
-% ============================================
-% END % ### NormalizeTimeBase
