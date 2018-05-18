@@ -26,10 +26,6 @@ OUT.stride_time.ylabel      ='Stride time [s]';
 OUT.stride_time_var.titel   ='Stride time variability';
 OUT.stride_time_var.ylabel  ='Stride time variability [s]';
 %%
-% % spline first
-% COM     = spline_interp_find_gaps(COM,5);%%%%%%%%%%%%%%%%%%%%%% edit!!!!
-% Rfoot   = spline_interp_find_gaps(Rfoot,5);
-% Lfoot   = spline_interp_find_gaps(Lfoot,5);
 % calculate velocities
 COM_vel = calc_derivative(COM,fsopto);
 COM_acc = calc_derivative(COM_vel,fsopto);
@@ -131,6 +127,12 @@ for i_pred_sample=pred_samples
     if removeorigin
         pred_Lstance(:,1)   = pred_Lstance(:,1)-origin_L;
         pred_Rstance(:,1)   = pred_Rstance(:,1)-origin_R;
+        OUT.pred1_Leftstance.data(i_pred_sample) = nanmean(pred_Lstance(:,1)); 
+        OUT.pred1_Leftstance.ylabel = 'Left: predictor 1';
+        OUT.pred1_Leftstance.titel  = 'Left: predictor 1';
+        OUT.pred1_Rightstance.data(i_pred_sample) = nanmean(pred_Lstance(:,1)); 
+        OUT.pred1_Rightstance.ylabel    = 'right: predictor 1';
+        OUT.pred1_Rightstance.titel     = 'right: predictor 1';
     end
     if centerdata
         pred_Lstance        = pred_Lstance-repmat(nanmean(pred_Lstance),size(pred_Lstance,1),1);
@@ -161,10 +163,10 @@ for i_pred_sample=pred_samples
     pred_Rstance(isnan(sum(tmp,2)),:)   = [];
     ind_R(isnan(sum(tmp,2)))            = [];
     R_jac(i_pred_sample,:)              = foot_R_sample'/(pred_Rstance(:,1:order)'); % this is the 'jacobian'; as in Wang & srinivasavan
-    OUT.Right_pct.data(i_pred_sample)       = nanR2(foot_R_sample,(R_jac(i_pred_sample,:)*(pred_Rstance(:,1:order)'))'); % alternative for r^2
-    OUT.Right_coeff1.data(i_pred_sample)    = R_jac(i_pred_sample,1);
-    OUT.Right_coeff2.data(i_pred_sample)    = R_jac(i_pred_sample,2);
-    OUT.Right_N.data(i_pred_sample)         = size(pred_Rstance,1);
+    OUT.Right_pct.data(i_pred_sample)   = nanR2(foot_R_sample,(R_jac(i_pred_sample,:)*(pred_Rstance(:,1:order)'))'); % alternative for r^2
+    OUT.Right_coeff1.data(i_pred_sample)= R_jac(i_pred_sample,1);
+    OUT.Right_coeff2.data(i_pred_sample)= R_jac(i_pred_sample,2);
+    OUT.Right_N.data(i_pred_sample)     = size(pred_Rstance,1);
     if i_pred_sample==1
         OUT.Right_foot_var.data      = std(foot_R_sample);
         OUT.Right_foot_var.titel     = 'Right: variance of outcome';
@@ -189,10 +191,10 @@ for i_pred_sample=pred_samples
     pred_Lstance(isnan(sum(tmp,2)),:)   = [];
     ind_L(isnan(sum(tmp,2)))            = [];
     L_jac(i_pred_sample,:)              = foot_L_sample'/(pred_Lstance(:,1:order)'); % this is the 'jacobian'; as in Wang & srinivasavan
-    OUT.Left_pct.data(i_pred_sample)            = nanR2(foot_L_sample,(R_jac(i_pred_sample,:)*(pred_Lstance(:,1:order)'))'); % alternative for r^2
-    OUT.Left_coeff1.data(i_pred_sample)         = L_jac(i_pred_sample,1);
-    OUT.Left_coeff2.data(i_pred_sample)         = L_jac(i_pred_sample,2);
-    OUT.Left_N.data(i_pred_sample)              = size(pred_Lstance,1);
+    OUT.Left_pct.data(i_pred_sample)    = nanR2(foot_L_sample,(R_jac(i_pred_sample,:)*(pred_Lstance(:,1:order)'))'); % alternative for r^2
+    OUT.Left_coeff1.data(i_pred_sample) = L_jac(i_pred_sample,1);
+    OUT.Left_coeff2.data(i_pred_sample) = L_jac(i_pred_sample,2);
+    OUT.Left_N.data(i_pred_sample)      = size(pred_Lstance,1);
     if i_pred_sample==1
         OUT.Left_foot_var.data      = std(foot_L_sample);
         OUT.Left_foot_var.titel     = 'Left: variance of outcome';
@@ -238,7 +240,7 @@ for i_pred_sample=pred_samples
     OUT.Combined_N.ylabel       = 'Combined: number of datapoints included';
     intermediates.error_combined(i_pred_sample,ind_combined)   = foot_combined-(combined_jac(i_pred_sample,:)*pred_combined')';
 end
-intermediates.error_right(intermediates.error_right==0)=nan;
-intermediates.error_left(intermediates.error_left==0)=nan;
-intermediates.error_combined(intermediates.error_combined==0)=nan;
+intermediates.error_right(intermediates.error_right==0)         = nan;
+intermediates.error_left(intermediates.error_left==0)           = nan;
+intermediates.error_combined(intermediates.error_combined==0)   = nan;
 
