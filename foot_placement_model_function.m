@@ -8,13 +8,12 @@ function [OUT,intermediates]=foot_placement_model_function(COM,Rfoot,Lfoot,rhs,l
 
 % include; -intermediates, n# of steps excluded, steptimes
 %% actual calculations. Start with setting things up.
-warning off
 
 % first find some strides that need to be excluded (any that are too long)
 st_L = diff(lhs);
 st_R = diff(rhs);
 ignore_L = find(st_L>(median(st_L)+0.3*median(st_L))|st_L<(median(st_L)-0.3*median(st_L)))';
-ignore_R =  find(st_R>(median(st_R)+0.3*median(st_R))|st_R<(median(st_R)-0.3*median(st_R)))';
+ignore_R = find(st_R>(median(st_R)+0.3*median(st_R))|st_R<(median(st_R)-0.3*median(st_R)))';
 
 st_L(ignore_L)              = [];
 OUT.stride_time.data        = nanmean(st_L./fsopto);
@@ -94,10 +93,10 @@ end
 OUT.SW.data         = nanmean(abs([foot_L; foot_R]));
 OUT.SW_var.data     = nanstd(abs([foot_L ;foot_R]));
 
-OUT.SW.ylabel       ='Stepwidth [m]';
-OUT.SW_var.ylabel   ='Stepwidth variability[m]';
-OUT.SW.titel        ='Stepwidth';
-OUT.SW_var.titel    ='Stepwidth variability';
+OUT.SW.ylabel       = 'Stepwidth [m]';
+OUT.SW_var.ylabel   = 'Stepwidth variability[m]';
+OUT.SW.titel        = 'Stepwidth';
+OUT.SW_var.titel    = 'Stepwidth variability';
 
 if centerdata
     foot_L       = foot_L -nanmean(foot_L); % substract mean
@@ -105,10 +104,10 @@ if centerdata
 end
 
 %%
-L_jac       = zeros(length(pred_samples),order);
-R_jac       = zeros(length(pred_samples),order);
-
-for i_pred_sample=pred_samples
+L_jac           = zeros(length(pred_samples),order);
+R_jac           = zeros(length(pred_samples),order);
+combined_jac    = zeros(length(pred_samples),order);
+for i_pred_sample = pred_samples
     %  get correct sample for all variables
     COM_L_sample        = COM_L(i_pred_sample,:)';
     COM_L_vel_sample    = COM_L_vel(i_pred_sample,:)';
@@ -138,8 +137,8 @@ for i_pred_sample=pred_samples
         pred_Lstance        = pred_Lstance-repmat(nanmean(pred_Lstance),size(pred_Lstance,1),1);
         pred_Rstance        = pred_Rstance-repmat(nanmean(pred_Rstance),size(pred_Rstance,1),1);
     end
-    foot_L_sample=foot_L;
-    foot_R_sample=foot_R;
+    foot_L_sample   = foot_L;
+    foot_R_sample   = foot_R;
     % save predictors
     OUT.var_pre1dLeftstance.data(i_pred_sample)    = nanstd(pred_Lstance(:,1));
     OUT.var_pre2dLeftstance.data(i_pred_sample)    = nanstd(pred_Lstance(:,2));
@@ -163,7 +162,7 @@ for i_pred_sample=pred_samples
     pred_Rstance(isnan(sum(tmp,2)),:)   = [];
     ind_R(isnan(sum(tmp,2)))            = [];
     R_jac(i_pred_sample,:)              = foot_R_sample'/(pred_Rstance(:,1:order)'); % this is the 'jacobian'; as in Wang & srinivasavan
-    OUT.Right_pct.data(i_pred_sample)   = nanR2(foot_R_sample,(R_jac(i_pred_sample,:)*(pred_Rstance(:,1:order)'))'); % alternative for r^2
+    OUT.Right_pct.data(i_pred_sample)   = corr(foot_R_sample,(R_jac(i_pred_sample,:)*(pred_Rstance(:,1:order)'))','rows','complete')^2; 
     OUT.Right_coeff1.data(i_pred_sample)= R_jac(i_pred_sample,1);
     OUT.Right_coeff2.data(i_pred_sample)= R_jac(i_pred_sample,2);
     OUT.Right_N.data(i_pred_sample)     = size(pred_Rstance,1);
@@ -191,7 +190,7 @@ for i_pred_sample=pred_samples
     pred_Lstance(isnan(sum(tmp,2)),:)   = [];
     ind_L(isnan(sum(tmp,2)))            = [];
     L_jac(i_pred_sample,:)              = foot_L_sample'/(pred_Lstance(:,1:order)'); % this is the 'jacobian'; as in Wang & srinivasavan
-    OUT.Left_pct.data(i_pred_sample)    = nanR2(foot_L_sample,(R_jac(i_pred_sample,:)*(pred_Lstance(:,1:order)'))'); % alternative for r^2
+    OUT.Left_pct.data(i_pred_sample)    = corr(foot_L_sample,(R_jac(i_pred_sample,:)*(pred_Lstance(:,1:order)'))','rows','complete')^2; 
     OUT.Left_coeff1.data(i_pred_sample) = L_jac(i_pred_sample,1);
     OUT.Left_coeff2.data(i_pred_sample) = L_jac(i_pred_sample,2);
     OUT.Left_N.data(i_pred_sample)      = size(pred_Lstance,1);
@@ -220,7 +219,7 @@ for i_pred_sample=pred_samples
     pred_combined(isnan(sum(tmp,2)),:)  = [];
     ind_combined(isnan(sum(tmp,2)))     = [];
     combined_jac(i_pred_sample,:)           = foot_combined'/pred_combined'; % this is the 'jacobian'; as in Wang & srinivasavan
-    OUT.Combined_pct.data(i_pred_sample)    = nanR2(foot_combined,(combined_jac(i_pred_sample,:)*pred_combined')'); % alternative for r^2
+    OUT.Combined_pct.data(i_pred_sample)    = corr(foot_combined,(combined_jac(i_pred_sample,:)*pred_combined')','rows','complete')^2;
     OUT.Combined_coeff1.data(i_pred_sample) = combined_jac(i_pred_sample,1);
     OUT.Combined_coeff2.data(i_pred_sample) = combined_jac(i_pred_sample,2);
     OUT.Combined_N.data(i_pred_sample)      = size(foot_combined,1);
