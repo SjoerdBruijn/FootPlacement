@@ -1,5 +1,6 @@
 # FootPlacement
 Foot placement prediction, based on the work of Wang &amp; Srinivasavan
+
 requires the Matlab Statistics toolbox. 
 
 ```matlab
