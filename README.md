@@ -7,13 +7,11 @@ It correlates the center of mass kinematic state during swing with subsequent fo
 We uploaded example data 'testdata.mat' which can be used to run the example code below.
 Here we run the foot placement model and plot the resulting relative explained variance (% explained variance).
 
-Using the foot placement model function requires the Matlab Statistics toolbox and functions from the =VU 3D model= folder.
+Using the foot placement model function requires the Matlab Statistics toolbox.
 
 ```matlab
 clear all;
 load 'testdata'
-
-addpath(genpath('=VU 3D model='))
 
 pred_samples = 1:51;
 order        = 2;
