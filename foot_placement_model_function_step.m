@@ -1,12 +1,78 @@
 
 function [OUT,intermediates]=foot_placement_model_function_step(COM,Rfoot,Lfoot,events,fsopto,pred_samples,order,removeorigin,centerdata)
-% function to calculate foot placement model and % explained variance.
-% returns output structure with variables and suggested figure titles as
+% Function to calculate a foot placement model and corresponding relative explained variance (R^2).
+% The foot placement model is a linear model correlating center of mass kinematic
+% state during swing to the subsequent foot placement.
+
+% Input:
+    % COM: Mediolateral position of the center of mass
+
+    % Rfoot: Mediolater position of the right foot (e.g. based on right
+    % heel marker)
+
+    % Lfoot: Mediolater position of the right foot (e.g. based on right
+    % heel marker)
+
+    % events: Struct with gait events ordered in the order left heel strike
+    % (lhs), right toe-off (rto), right heelstrike (rhs), left toe-off
+    % (lto)
+
+    % fsopto: Frequency at which COM Rfoot Lfoot were sampled
+    
+    % pred_samples: For which CoM samples during swing (1:51) you want to
+    % fit the model. 
+    
+    % order: Which orders of derivatives to include as the CoM kinematic
+    % state (1 = CoM position, 2 = CoM position & CoM velocity, 3 = CoM
+    % position, CoM velocity and CoM acceleration)
+    
+    % removeorigin: Option to express foot placement with respect to the
+    % contralateral stance foot (removeorigin == 1) or not.
+    
+    % centerdata: Option to demean the dependent and independent variables
+    % (centerdata == 1) or not.
+
+% Output:
+
+% The fuction returns output structure with variables and suggested figure titles as
 % well as y-labels
 
+% struct:   OUT.
+%           stride_time         :   stride-averaged stride times (s)
+%           stride_time_var     :   standard deviatioin stride time (s)
+%           COM_var             :   standard deviation stride-averaged ML CoM position
+%           COM_vel_var         :   standard deviation stride-averaged ML CoM velociy
+%           COM_acc_var         :   standard deviation stride-averaged ML acc
+%           COM                 :   stride-averaged ML CoM position
+%           COM_vel             :   stride-averaged ML CoM velocity
+%           COM_acc             :   stride-averaged ML CoM acceleration
+%           SW                  :   stride-averaged step width
+%           SW_var              :   standard deviation stride-averaged step width
+%           var_pre1dLeftstance :   standard deviation predictor 1 (ML CoM position, during the left foot swing phase)
+%           var_pre2dLeftstance :   standard deviation predictor 2  (ML CoM velocity, during the left foot swing phase)
+%           var_pre1dRightstance:   standard deviation predictor 1 (ML CoM position, during the right foot swing phase)
+%           var_pre2dRightstance:   standard deviation predictor 2 (ML CoM velocity, during the right foot swing phase)
+%           Right_pct           :   relative explained variance for CoM kinematic state explaining right foot placement
+%           Right_coeff1        :   CoM position regression coefficient (beta) for model predicting right foot placement only     
+%           Right_coeff2        :   CoM  velocity regression coefficient (beta) for model predicting right foot placement only
+%           Right_N             :   amount of right steps included
+%           Right_foot_var      :   Standard deviation right foot placement
+%           Left_pct            :   relative explained variance for CoM inematic state explaining left foot placement
+%           Left_coeff1         :   CoM position regression coefficient (beta) for model predicting left foot placement only     
+%           Left_coeff2         :   CoM  velocity regression coefficient (beta) for model predicting left foot placement only
+%           Left_N              :   amount of left steps included
+%           Left_foot_var       :   standard deviation right foot placement
+%           Combined_pct        :   relative explained variance for CoM inematic state explaining foot placement (left & right)
+%           Combined_coeff1     :   CoM position regression coefficient (beta) for model predicting foot placement      
+%           Combined_coeff2     :   CoM  velocity regression coefficient (beta) for model predicting foot placement
+%           Combined_N          :   amount of steps included
 
 
-% include; -intermediates, n# of steps excluded, steptimes
+% struct:   intermediates.
+%           error_right         :   right foot placement prediction error i.e. residual
+%           error_left          :   left foot placement prediction error i.e residual
+%           error_combined      :   foot placement predicion error (left & right) i.e. residual
+
 %% actual calculations. Start with setting things up.
 % check the incoming events.
 [events,flag] = order_events(events);
@@ -144,6 +210,7 @@ for i_pred_sample=pred_samples
     end
     foot_L_sample=foot_L;
     foot_R_sample=foot_R;
+    
     % save predictors
     OUT.var_pre1dLeftstance.data(i_pred_sample)    = nanstd(pred_Lstance(:,1));
     OUT.var_pre2dLeftstance.data(i_pred_sample)    = nanstd(pred_Lstance(:,2));
@@ -160,7 +227,8 @@ for i_pred_sample=pred_samples
     OUT.var_pre1dRightstance.titel    = 'Right: Variability of predictor 1';
     OUT.var_pre2dRightstance.titel    = 'Right: Variability of predictor 2';
     
-    %% calculations for right
+    %% Calculations for right foot
+    
     tmp                                 = [foot_R_sample pred_Rstance];
     ind_R                               = 1:size(tmp,1);
     foot_R_sample(isnan(sum(tmp,2)))    = [];
@@ -194,7 +262,8 @@ for i_pred_sample=pred_samples
     OUT.Right_coeff2.ylabel  = 'Right: Coefficient 2';
     OUT.Right_N.ylabel       = 'Right: number of datapoints included';
     
-    %% for left
+    %% Calculations for left foot
+    
     tmp                                 = [foot_L_sample pred_Lstance];
     ind_L                               = 1:size(tmp,1);
     foot_L_sample(isnan(sum(tmp,2)))    = [];
@@ -225,7 +294,9 @@ for i_pred_sample=pred_samples
     OUT.Left_coeff1.ylabel  = 'Left: Coefficient 1';
     OUT.Left_coeff2.ylabel  = 'Left: Coefficient 2';
     OUT.Left_N.ylabel       = 'Left: number of datapoints included';
-    %% combined
+    
+    %% Calculations combined (left & right foot)
+    
     foot_combined                       = [foot_R_sample ;foot_L_sample];
     pred_combined                       = [pred_Rstance(:,1:order); pred_Lstance(:,1:order)];
     tmp                                 = [foot_combined pred_combined];
