@@ -27,7 +27,7 @@ ylabel(OUT.Combined_pct.ylabel)
 title(OUT.Combined_pct.titel)
 xlabel('step percentage (%)')
 ```
-#References
+References
 Wang, Yang, and Manoj Srinivasan. "Stepping in the direction of the fall: the next foot placement can be predicted from current upper body state in steady-state walking." Biology letters 10.9 (2014): 20140405.
 
 Mahaki, Mohammadreza, Sjoerd M. Bruijn, and Jaap H. Van Dieën. "The effect of external lateral stabilization on the use of foot placement to control mediolateral stability in walking and running." PeerJ 7 (2019): e7939.
