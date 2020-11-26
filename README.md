@@ -22,7 +22,7 @@ centerdata   = 1;
 [OUT,intermediates]=foot_placement_model_function_step(CoM_ML,Rfoot,Lfoot,events,fs_opto,pred_samples,order,removeorigin,centerdata)
 
 figure;
-plot((1:51)*2-2,OUT.Combined_pct.data)
+plot((1:51)*2-2,OUT.Combined_pct.data*100)
 ylabel(OUT.Combined_pct.ylabel)
 title(OUT.Combined_pct.titel)
 xlabel('step percentage (%)')
