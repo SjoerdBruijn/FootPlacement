@@ -1,6 +1,6 @@
 # FootPlacement
 Foot placement prediction, based on the work of Wang &amp; Srinivasavan (2014), and as used in Mahaki et al (2019), Van Leeuwen et al (2020). 
-Feel free to use this code, but please cite one of the above work, or the DOI itself;
+Feel free to use this code, but please cite one of the above work, or the DOI itself;[![DOI](https://zenodo.org/badge/133036916.svg)](https://zenodo.org/badge/latestdoi/133036916)
 
 'foot_placement_model_function_step' is a function to perform a linear regression model. 
 It correlates the center of mass kinematic state during swing with subsequent foot placement.
